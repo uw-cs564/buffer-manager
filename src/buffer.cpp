@@ -51,7 +51,10 @@ void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {}
 void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
 }
 
-void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {}
+void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {
+
+
+}
 
 void BufMgr::flushFile(File& file) {
   //write all dirty bit frames to the disk 
@@ -61,7 +64,18 @@ for (FrameId i = 0; i < bufs; i++) {
 //chekc ig page is dirty - write to disk 
     if (bufDescTable[i].dirty == true){
       file.writePage()
+      bufDescTable[i].dirty = false
     }
+
+//remove page from hash table
+    try{
+      BufMgr.hashTable.remove(bufDescTable[i].file, bufDescTable[i].pageNo)
+    }
+    catch (HashNotFoundException h){}
+    }
+
+  bufDescTable[i].Clear()
+
 //throw error if any frame is invalid 
     if (bufDescTable[i].valid == true){
       throw BadBufferException()
@@ -73,7 +87,7 @@ for (FrameId i = 0; i < bufs; i++) {
 
   }
 
-}
+
 
 void BufMgr::disposePage(File& file, const PageId PageNo) {
 //call remove - to remove from hash table - if not there 
