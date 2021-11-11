@@ -48,13 +48,42 @@ void BufMgr::allocBuf(FrameId& frame) {}
 
 void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {}
 
-void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {}
+void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
+}
 
 void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {}
 
-void BufMgr::flushFile(File& file) {}
+void BufMgr::flushFile(File& file) {
+  //write all dirty bit frames to the disk 
+   //throw error if any pafe is pinned 
+   
+for (FrameId i = 0; i < bufs; i++) {
+//chekc ig page is dirty - write to disk 
+    if (bufDescTable[i].dirty == true){
+      file.writePage()
+    }
+//throw error if any frame is invalid 
+    if (bufDescTable[i].valid == true){
+      throw BadBufferException()
+    }
+//throw error if page is pinned 
+    if (bufDescTable[i].pin > 0) {
+      throw PagePinnedException()
+    }
 
-void BufMgr::disposePage(File& file, const PageId PageNo) {}
+  }
+
+}
+
+void BufMgr::disposePage(File& file, const PageId PageNo) {
+//call remove - to remove from hash table - if not there 
+  try{
+    BufMgr.hashTable.remove(file, PageNo)
+  }
+  catch (HashNotFoundException h){}
+//delete page from file ?
+  file.deletePage(PageNo)
+}
 
 void BufMgr::printSelf(void) {
   int validFrames = 0;
