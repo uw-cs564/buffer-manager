@@ -39,12 +39,17 @@ BufMgr::BufMgr(std::uint32_t bufs)
 }
 
 void BufMgr::advanceClock() {
-  if BufMgr.numBufs;
-  clockHand += 1;
-  bufs = bufs + 1;
+  if (clockHand == BufMgr.numBufs - 1) {
+    clockHand = 0;
+  }else {
+    clockHand++;
+  }
 }
 
-void BufMgr::allocBuf(FrameId& frame) {}
+// Access the frames by using buffDescTable at index clockHand.
+void BufMgr::allocBuf(FrameId& frame) {
+  
+}
 
 void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {}
 
