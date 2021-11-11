@@ -52,8 +52,13 @@ void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
 }
 
 void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {
-
-
+  //allocate an empty page 
+  Page*& pageNew = file.allocatePage()
+  FrameId& frameNew = allocBuf(&pageNew)
+  //insert page in hash table
+  BufMgr.hashTable.insert(file,pageNo, frameNew*)
+  //call Set on frame 
+  
 }
 
 void BufMgr::flushFile(File& file) {
@@ -61,7 +66,7 @@ void BufMgr::flushFile(File& file) {
    //throw error if any pafe is pinned 
    
 for (FrameId i = 0; i < bufs; i++) {
-//chekc ig page is dirty - write to disk 
+//check if page is dirty - write to disk 
     if (bufDescTable[i].dirty == true){
       file.writePage()
       bufDescTable[i].dirty = false
