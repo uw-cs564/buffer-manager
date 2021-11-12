@@ -39,12 +39,49 @@ BufMgr::BufMgr(std::uint32_t bufs)
 }
 
 void BufMgr::advanceClock() {
-  if BufMgr.numBufs;
-  clockHand += 1;
-  bufs = bufs + 1;
+  if (clockHand == BufMgr.numBufs - 1) {
+    clockHand = 0;
+  }else {
+    clockHand++;
+  }
 }
 
-void BufMgr::allocBuf(FrameId& frame) {}
+// Access the frames by using buffDescTable at index clockHand.
+void BufMgr::allocBuf(FrameId& frame) {
+    int count = 0;
+    while (count < (numBufs - 1)) { // might be numBufs * 2 since if release set refBit 1 and revisit then set refBit to 0 and traverse again.
+      if (bufDescTable[clockHand].valid == false) {
+        return;
+      } else {
+        if (bufDescTable[clockHand].refbit == true) { // then set refBit back to 0 and move to next frame.
+          bufDescTable[clockHand].refbit = false;
+            count++;
+            advanceClock();
+        } else { // means refBit is false.
+            if (bufDescTable[clockHand].pinCnt != 0) { // means frame is taken by another page.
+              count++;
+              advanceClock();
+              
+            } else{ // means frame is open since refBit is 0
+              if (bufDesTable[clockHand].dirtyBit == true) { // Has been modified and pin is 0 so write to disk.
+                bufDescTable[clockHand].file->writePage(bufPool[clockHand]);
+                bufDescTable[clockHand].Clear();
+                bufStats.accesses = bufStats.accesses + 1;
+                bufStats.diskwrites = bufStats.diskwrites + 1;
+                hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+              }
+              else {
+                frame = clockHand;
+                return;
+              }
+            }
+        }
+      } 
+
+      }
+      throw BufferExceededException(); // nothing was allocated after traversing all frames.
+    }
+}
 
 void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {}
 
@@ -52,8 +89,13 @@ void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
 }
 
 void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {
-
-
+  //allocate an empty page 
+  Page*& pageNew = file.allocatePage()
+  FrameId& frameNew = allocBuf(&pageNew)
+  //insert page in hash table
+  BufMgr.hashTable.insert(file,pageNo, frameNew*)
+  //call Set on frame 
+  
 }
 
 void BufMgr::flushFile(File& file) {
@@ -61,7 +103,7 @@ void BufMgr::flushFile(File& file) {
    //throw error if any pafe is pinned 
    
 for (FrameId i = 0; i < bufs; i++) {
-//chekc ig page is dirty - write to disk 
+//check if page is dirty - write to disk 
     if (bufDescTable[i].dirty == true){
       file.writePage()
       bufDescTable[i].dirty = false
