@@ -39,7 +39,7 @@ BufMgr::BufMgr(std::uint32_t bufs)
 }
 
 void BufMgr::advanceClock() {
-  if (clockHand == BufMgr.numBufs - 1) {
+  if (clockHand == numBufs - 1) {
     clockHand = 0;
   }else {
     clockHand++;
@@ -63,12 +63,12 @@ void BufMgr::allocBuf(FrameId& frame) {
               advanceClock();
               
             } else{ // means frame is open since refBit is 0
-              if (bufDesTable[clockHand].dirtyBit == true) { // Has been modified and pin is 0 so write to disk.
-                bufDescTable[clockHand].file->writePage(bufPool[clockHand]);
-                bufDescTable[clockHand].Clear();
+              if (bufDescTable[clockHand].dirty == true) { // Has been modified and pin is 0 so write to disk.
+                bufDescTable[clockHand].file.writePage(bufPool[clockHand]);
+                bufDescTable[clockHand].clear();
                 bufStats.accesses = bufStats.accesses + 1;
                 bufStats.diskwrites = bufStats.diskwrites + 1;
-                hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+                hashTable.remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
               }
               else {
                 frame = clockHand;
@@ -81,7 +81,7 @@ void BufMgr::allocBuf(FrameId& frame) {
       }
       throw BufferExceededException(); // nothing was allocated after traversing all frames.
     }
-}
+
 
 void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {}
 
@@ -102,11 +102,11 @@ void BufMgr::flushFile(File& file) {
   //write all dirty bit frames to the disk 
    //throw error if any pafe is pinned 
    
-for (FrameId i = 0; i < bufs; i++) {
+for (FrameId i = 0; i < numBufs; i++) {
 //check if page is dirty - write to disk 
     if (bufDescTable[i].dirty == true){
-      file.writePage()
-      bufDescTable[i].dirty = false
+      file.writePage();
+      bufDescTable[i].dirty = false;
     }
 
 //remove page from hash table
