@@ -39,7 +39,7 @@ BufMgr::BufMgr(std::uint32_t bufs)
 }
 
 void BufMgr::advanceClock() {
-  if (clockHand == BufMgr.numBufs - 1) {
+  if (clockHand == numBufs - 1) {
     clockHand = 0;
   }else {
     clockHand++;
@@ -81,6 +81,10 @@ void BufMgr::allocBuf(FrameId& frame) {
       }
       throw BufferExceededException(); // nothing was allocated after traversing all frames.
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 25beea0633da670618b4df3a95f235c8b20d2ec9
 
 void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {
   //look up in hash table 
@@ -147,11 +151,17 @@ void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {
 void BufMgr::flushFile(File& file) {
   //write all dirty bit frames to the disk 
    
-for (FrameId i = 0; i < bufs; i++) {
+for (FrameId i = 0; i < numBufs; i++) {
 //check if page is dirty - write to disk 
+<<<<<<< HEAD
     if(bufDescTable[i].dirty == true){
       file.writePage()
       bufDescTable[i].dirty = false
+=======
+    if (bufDescTable[i].dirty == true){
+      file.writePage();
+      bufDescTable[i].dirty = false;
+>>>>>>> 25beea0633da670618b4df3a95f235c8b20d2ec9
     }
 
 //remove page from hash table
