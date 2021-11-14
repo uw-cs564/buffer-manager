@@ -49,7 +49,7 @@ void BufMgr::advanceClock() {
 // Access the frames by using buffDescTable at index clockHand.
 void BufMgr::allocBuf(FrameId& frame) {
     int count = 0;
-    while (count < (numBufs - 1)) { // might be numBufs * 2 since if release set refBit 1 and revisit then set refBit to 0 and traverse again.
+    while (count < (numBufs - 1) * 2) { // might be numBufs * 2 since if release set refBit 1 and revisit then set refBit to 0 and traverse again.
       if (bufDescTable[clockHand].valid == false) {
         return;
       } else {
@@ -62,18 +62,21 @@ void BufMgr::allocBuf(FrameId& frame) {
               count++;
               advanceClock();
               
-            } else{ // means frame is open since refBit is 0
-              if (bufDescTable[clockHand].dirty == true) { // Has been modified and pin is 0 so write to disk.
+            } else { // means frame is open since refBit is 0
+              if (bufDescTable[clockHand].dirty) { // Has been modified and pin is 0 so write to disk.
                 bufDescTable[clockHand].file.writePage(bufPool[clockHand]);
                 bufDescTable[clockHand].clear();
                 bufStats.accesses = bufStats.accesses + 1;
                 bufStats.diskwrites = bufStats.diskwrites + 1;
                 hashTable.remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+                frame = clockHand;
+                return;
               }
               else {
                 frame = clockHand;
                 return;
               }
+              
             }
         }
       } 
