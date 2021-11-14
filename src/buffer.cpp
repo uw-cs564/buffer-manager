@@ -69,8 +69,7 @@ void BufMgr::allocBuf(FrameId& frame) {
                 bufStats.accesses = bufStats.accesses + 1;
                 bufStats.diskwrites = bufStats.diskwrites + 1;
                 hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
-              }
-              else {
+              } else {
                 frame = clockHand;
                 return;
               }
@@ -83,9 +82,56 @@ void BufMgr::allocBuf(FrameId& frame) {
     }
 }
 
-void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {}
+void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {
+  //look up in hash table 
+  frameId frameNo = NULL
+ try{
+    hashtable.lookup(file,pageNo,frameNo);
+  } catch (HashNotFoundException h){
+    //call allocbuf 
+    allocBuf(frameNo) 
+    //call readpage
+    file.readPage(pageNo)
+    BufStats.diskreads++
+    //insert into hash table 
+    hashtable.insert(file, pageNo, frameNo)
+    //call set on frame 
+    bufDescTable[frameNo].frameNo.Set(file, PageNo)
+    return 
+  }
+
+  //case 2
+  //refbit 
+  bufDescTable[frameNo].refbit = true
+  //pinCnt++
+  bufDescTable[frameNo].pinCnt++  
+  //increment access 
+  accesses++
+  //return pointer to the frame 
+  return frameNo
+}
 
 void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
+  FrameID frameNo = NULL
+  //decrement pin count 
+  try{
+    hashtable.lookup(file,pageNo,frameNo);
+  } catch (HashNotFoundException h){
+    return
+  }
+  if(bufDescTable[frameNo].pinCnt > 0 ) {
+    bufDescTable[frameNo].pinCnt--
+  }
+  //if pin count is  0
+  else if (bufDescTable[frameNo].pinCnt == 0){
+    throw PageNotPinnedException()
+  }
+  if (dirty == true){
+    bufDescTable[frameNo].dirty = true
+  }
+  }
+  
+  
 }
 
 void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {
@@ -100,11 +146,10 @@ void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {
 
 void BufMgr::flushFile(File& file) {
   //write all dirty bit frames to the disk 
-   //throw error if any pafe is pinned 
    
 for (FrameId i = 0; i < bufs; i++) {
 //check if page is dirty - write to disk 
-    if (bufDescTable[i].dirty == true){
+    if(bufDescTable[i].dirty == true){
       file.writePage()
       bufDescTable[i].dirty = false
     }
@@ -126,10 +171,7 @@ for (FrameId i = 0; i < bufs; i++) {
     if (bufDescTable[i].pin > 0) {
       throw PagePinnedException()
     }
-
   }
-
-
 
 void BufMgr::disposePage(File& file, const PageId PageNo) {
 //call remove - to remove from hash table - if not there 
