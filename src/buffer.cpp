@@ -49,7 +49,7 @@ void BufMgr::advanceClock() {
 // Access the frames by using buffDescTable at index clockHand.
 void BufMgr::allocBuf(FrameId& frame) {
     int count = 0;
-    while (count < (numBufs - 1) * 2) { // might be numBufs * 2 since if release set refBit 1 and revisit then set refBit to 0 and traverse again.
+    while (count < (numBufs  * 2)) { // might be numBufs * 2 since if release set refBit 1 and revisit then set refBit to 0 and traverse again.
       if (bufDescTable[clockHand].valid == false) {
         return;
       } else {
@@ -85,29 +85,83 @@ void BufMgr::allocBuf(FrameId& frame) {
       throw BufferExceededException(); // nothing was allocated after traversing all frames.
     }
 
+void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {
+  //look up in hash table 
+  FrameId frameNo = NULL;
+ try {
+    hashTable.lookup(file,pageNo,frameNo);
+  } catch (HashNotFoundException h){
+    //call allocbuf 
+    allocBuf(frameNo); 
+    //call readpage
+    // Page currPage = file.readPage(pageNo); Don't know if should include
+    file.readPage(pageNo);
+    bufStats.diskreads++;
+    //insert into hash table 
+    hashTable.insert(file, pageNo, frameNo);
+    // bufPool[frame] = currPage; Don't know if should include
+    //call set on frame 
+    bufDescTable[frameNo].Set(file, pageNo);
+    page = &bufPool[frameNo];
+  }
 
-void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {}
+  //case 2
+  //refbit 
+  bufDescTable[frameNo].refbit = true;
+  //pinCnt++
+  bufDescTable[frameNo].pinCnt++; 
+  //increment access 
+  bufStats.accesses++;
+  page = &bufPool[frameNo];
+  //return pointer to the frame 
+  
+}
 
 void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
+  FrameId frameNo = NULL;
+  //decrement pin count 
+  try{
+    hashTable.lookup(file,pageNo,frameNo);
+  } catch (HashNotFoundException h){
+    return;
+  }
+  if(bufDescTable[frameNo].pinCnt > 0 ) {
+    bufDescTable[frameNo].pinCnt--;
+  }
+  //if pin count is  0
+  else if (bufDescTable[frameNo].pinCnt == 0){
+    throw PageNotPinnedException(file.filename(), pageNo, frameNo);
+  }
+  if (dirty){
+    bufDescTable[frameNo].dirty = true;
+  }
+    
 }
 
 void BufMgr::allocPage(File& file, PageId& pageNo, Page*& page) {
   //allocate an empty page 
-  Page*& pageNew = file.allocatePage()
-  FrameId& frameNew = allocBuf(&pageNew)
-  //insert page in hash table
-  BufMgr.hashTable.insert(file,pageNo, frameNew*)
+  Page pageNew = file.allocatePage();
+  FrameId frameNew;
+  // retrieves correct frame.
+  allocBuf(frameNew);
+  //insert page in hash table and bufPool.
+  hashTable.insert(file,pageNo, frameNew);
+  bufPool[frameNew] = pageNew;
   //call Set on frame 
+  bufDescTable[frameNew].Set(file,pageNo);
+  // return the needed references
+  page = &bufPool[frameNew];
+  pageNo = pageNew.page_number();
+  bufStats.accesses++;
   
 }
 
 void BufMgr::flushFile(File& file) {
   //write all dirty bit frames to the disk 
-   //throw error if any pafe is pinned 
    
 for (FrameId i = 0; i < numBufs; i++) {
 //check if page is dirty - write to disk 
-    if (bufDescTable[i].dirty == true){
+    if(bufDescTable[i].dirty == true){
       file.writePage();
       bufDescTable[i].dirty = false;
     }
@@ -129,19 +183,24 @@ for (FrameId i = 0; i < numBufs; i++) {
     if (bufDescTable[i].pin > 0) {
       throw PagePinnedException()
     }
-
   }
-
-
 
 void BufMgr::disposePage(File& file, const PageId PageNo) {
 //call remove - to remove from hash table - if not there 
+// check if frame exists in hashTable first.
   try{
-    BufMgr.hashTable.remove(file, PageNo)
+    FrameId frameNew;
+    hashTable.lookup(file, PageNo,frameNew);
+    // remove the frame.
+    hashTable.remove(file,PageNo);
+    // remove information about the frame from array.
+    bufDescTable[frameNew].clear();
   }
-  catch (HashNotFoundException h){}
-//delete page from file ?
-  file.deletePage(PageNo)
+  catch (HashNotFoundException h){
+
+  }
+//delete page from file 
+  file.deletePage(PageNo);
 }
 
 void BufMgr::printSelf(void) {
