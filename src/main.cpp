@@ -104,6 +104,7 @@ int main() {
 void testBufMgr() {
     // Create buffer manager
     bufMgr = std::make_shared<BufMgr>(num);
+    // bufMgr->printSelf();
 
     // Create dummy files
     const std::string filename1 = "test.1";
@@ -167,7 +168,7 @@ void test1(File &file1) {
         rid[i] = page->insertRecord(tmpbuf);
         bufMgr->unPinPage(file1, pid[i], true);
     }
-
+    bufMgr->printSelf();
     std::cout << "\n"
               << "Reading pages back."
               << "\n";
@@ -187,6 +188,9 @@ void test1(File &file1) {
 void test2(File &file1, File &file2, File &file3) {
     // Writing and reading back multiple files
     // The page number and the value should match
+    std::cout << "\n"
+              << "Starting test 2."
+              << "\n";
 
     for (i = 0; i < num / 3; i++) {
         bufMgr->allocPage(file2, pageno2, page2);
@@ -233,6 +237,9 @@ void test2(File &file1, File &file2, File &file3) {
 }
 
 void test3(File &file4) {
+    std::cout << "\n"
+              << "Starting test 3."
+              << "\n";
     try {
         bufMgr->readPage(file4, 1, page);
         PRINT_ERROR(
@@ -246,6 +253,9 @@ void test3(File &file4) {
 }
 
 void test4(File &file4) {
+    std::cout << "\n"
+              << "Starting test 4."
+              << "\n";
     bufMgr->allocPage(file4, i, page);
     bufMgr->unPinPage(file4, i, true);
     try {
@@ -261,6 +271,9 @@ void test4(File &file4) {
 }
 
 void test5(File &file5) {
+    std::cout << "\n"
+              << "Starting test 5."
+              << "\n";
     for (i = 0; i < num; i++) {
         bufMgr->allocPage(file5, pid[i], page);
         sprintf(tmpbuf, "test.5 Page %u %7.1f", pid[i], (float)pid[i]);
@@ -283,6 +296,9 @@ void test5(File &file5) {
 }
 
 void test6(File &file1) {
+    std::cout << "\n"
+              << "Starting test 6."
+              << "\n";
     // flushing file with pages still pinned. Should generate an error
     for (i = 1; i <= num; i++) {
         bufMgr->readPage(file1, i, page);
