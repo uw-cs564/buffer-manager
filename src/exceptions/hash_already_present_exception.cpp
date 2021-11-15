@@ -19,11 +19,11 @@ HashAlreadyPresentException::HashAlreadyPresentException(
       name(nameIn),
       pageNo(pageNoIn),
       frameNo(frameNoIn) {
-  std::stringstream ss;
-  ss << "Entry corresponding to the hash value of file:" << name
-     << "page:" << pageNo << "frame:" << frameNo
-     << "is already present in the hash table.";
-  message_.assign(ss.str());
+    std::stringstream ss;
+    ss << "Entry corresponding to the hash value of \nfile:" << name
+       << "\npage:" << pageNo << "\nframe:" << frameNo
+       << "\nis already present in the hash table.";
+    message_.assign(ss.str());
 }
 
 }  // namespace badgerdb

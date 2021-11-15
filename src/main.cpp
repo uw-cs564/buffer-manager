@@ -157,6 +157,9 @@ void testBufMgr() {
 }
 
 void test1(File &file1) {
+    std::cout << "\n"
+              << "Starting test 1."
+              << "\n";
     // Allocating pages in a file...
     for (i = 0; i < num; i++) {
         bufMgr->allocPage(file1, pid[i], page);
@@ -165,6 +168,9 @@ void test1(File &file1) {
         bufMgr->unPinPage(file1, pid[i], true);
     }
 
+    std::cout << "\n"
+              << "Reading pages back."
+              << "\n";
     // Reading pages back...
     for (i = 0; i < num; i++) {
         bufMgr->readPage(file1, pid[i], page);
