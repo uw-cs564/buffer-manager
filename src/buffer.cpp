@@ -51,6 +51,7 @@ void BufMgr::allocBuf(FrameId& frame) {
     int count = 0;
     while (count < ((int)numBufs * 2)) {  // might be numBufs * 2 since if release set refBit 1 and revisit then set refBit to 0 and traverse again.
         if (bufDescTable[clockHand].valid == false) {
+            frame = clockHand;
             return;
         } else {
             if (bufDescTable[clockHand].refbit == true) {  // then set refBit back to 0 and move to next frame.
@@ -65,10 +66,10 @@ void BufMgr::allocBuf(FrameId& frame) {
                 } else {                                  // means frame is open since refBit is 0
                     if (bufDescTable[clockHand].dirty) {  // Has been modified and pin is 0 so write to disk.
                         bufDescTable[clockHand].file.writePage(bufPool[clockHand]);
-                        bufDescTable[clockHand].clear();
                         bufStats.accesses = bufStats.accesses + 1;
                         bufStats.diskwrites = bufStats.diskwrites + 1;
                         hashTable.remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+                        bufDescTable[clockHand].clear();
                         frame = clockHand;
                         return;
                     } else {
