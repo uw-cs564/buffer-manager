@@ -1,4 +1,6 @@
 /docs
+/submit
 .vscode/c_cpp_properties.json
 test.*
 *.exe
+*.zip
