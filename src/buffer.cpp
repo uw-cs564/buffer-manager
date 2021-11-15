@@ -6,6 +6,16 @@
  * of Wisconsin-Madison.
  */
 
+/**
+ * Andy Lin
+ * Aishvi Shah
+ * James Zhang
+ * 
+ * Implements a buffer manager using the Clock Algorithm as replacement policy
+ * This file contains one instance of the BufMgr and uses classes BufDesc
+ * and BufHashTbl to manage the buffer pool
+ * 
+ */
 #include "buffer.h"
 
 #include <iostream>
@@ -38,6 +48,9 @@ BufMgr::BufMgr(std::uint32_t bufs)
     clockHand = bufs - 1;
 }
 
+/**
+ * @brief Advance clock to next frame in the buffer pool
+ */
 void BufMgr::advanceClock() {
     clockHand = (clockHand + 1) % numBufs;
 }
@@ -116,9 +129,6 @@ void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {
     }
 }
 
-/**
- * @throws PageNotPinnedException The page is not pinned
- */
 void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
     FrameId frameNo;
     //decrement pin count
@@ -189,7 +199,7 @@ void BufMgr::flushFile(File& file) {
 }
 
 void BufMgr::disposePage(File& file, const PageId PageNo) {
-    //call remove - to remove from hash table - if not there
+    // call remove - to remove from hash table - if not there
     // check if frame exists in hashTable first.
     try {
         FrameId frameNew;

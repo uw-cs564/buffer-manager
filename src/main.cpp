@@ -145,6 +145,8 @@ void testBufMgr() {
         // Close the files by going out of scope
     }
 
+    bufMgr = nullptr;
+
     // Delete files
     File::remove(filename1);
     File::remove(filename2);
