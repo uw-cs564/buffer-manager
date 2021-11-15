@@ -1,3 +1,11 @@
+/**
+ * Andy Lin
+ * Aishvi Shah
+ * James Zhang
+ * 
+ * The main file for constucting the buffer manager and running test cases 
+ * 
+ */
 #include <stdlib.h>
 
 #include <iostream>
@@ -145,6 +153,7 @@ void testBufMgr() {
         // Close the files by going out of scope
     }
 
+    // As per Piazza post https://piazza.com/class/kt4ve9sa1nf6ef?cid=392
     bufMgr = nullptr;
 
     // Delete files

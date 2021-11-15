@@ -6,6 +6,16 @@
  * of Wisconsin-Madison.
  */
 
+/**
+ * Andy Lin
+ * Aishvi Shah
+ * James Zhang
+ * 
+ * Implements a buffer manager using the Clock Algorithm as replacement policy
+ * This file contains one instance of the BufMgr and uses classes BufDesc
+ * and BufHashTbl to manage the buffer pool
+ * 
+ */
 #pragma once
 
 #include <iostream>

@@ -78,8 +78,8 @@ void BufMgr::allocBuf(FrameId& frame) {
                     allocate = true;
                     if (bufDescTable[clockHand].dirty) {  // Has been modified and pin is 0 so write to disk.
                         bufDescTable[clockHand].file.writePage(bufPool[clockHand]);
-                        bufStats.accesses = bufStats.accesses + 1;
-                        bufStats.diskwrites = bufStats.diskwrites + 1;
+                        bufStats.accesses++;
+                        bufStats.diskwrites++;
                         hashTable.remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
                         bufDescTable[clockHand].clear();
                         frame = clockHand;
@@ -112,7 +112,7 @@ void BufMgr::readPage(File& file, const PageId pageNo, Page*& page) {
         //return pointer to the frame
         page = &(bufPool[frameNo]);
 
-    } catch (badgerdb::HashNotFoundException const&) {
+    } catch (HashNotFoundException& e) {
         FrameId frameNo;
         // Case 1: page not found in buffer pool
         //call allocbuf
@@ -144,7 +144,7 @@ void BufMgr::unPinPage(File& file, const PageId pageNo, const bool dirty) {
         if (dirty) {
             bufDescTable[frameNo].dirty = true;
         }
-    } catch (badgerdb::HashNotFoundException const&) {
+    } catch (HashNotFoundException& e) {
     }
 }
 
@@ -186,8 +186,10 @@ void BufMgr::flushFile(File& file) {
 
             // if page is dirty
             if (bufDescTable[i].dirty) {
+                bufStats.accesses++;
                 // write to disk
                 bufDescTable[i].file.writePage(bufPool[i]);
+                bufStats.diskwrites++;
                 bufDescTable[i].dirty = false;
                 // remove page from hash table
                 hashTable.remove(file, bufDescTable[i].pageNo);
